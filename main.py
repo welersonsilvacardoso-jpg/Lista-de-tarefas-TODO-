@@ -9,8 +9,13 @@ def main():
         try:
             if op == '1':
                 desc = input("Descrição: ")
-                if desc.strip(): todo.add(desc, input("Prioritária? (s/n): ").lower() == 's')
-            elif op == '2': todo.list_all()
+                if desc.strip():
+                    prazo = input("Prazo (ex: 15/09/2026) ou deixe em branco: ").strip()
+                    todo.add(desc, prazo if prazo else None, input("Prioritária? (s/n): ").lower() == 's')
+            elif op == '2':
+                f = input("Filtro (1-Todas | 2-Pendentes | 3-Concluídas): ").strip()
+                tipos = {'1': 'todas', '2': 'pendentes', '3': 'concluidas'}
+                todo.list_all(tipos.get(f, 'todas'))
             elif op == '3': todo.complete(int(input("ID para concluir: ")))
             elif op == '4': todo.remove(int(input("ID para remover: ")))
             else: print("Opção inválida.")

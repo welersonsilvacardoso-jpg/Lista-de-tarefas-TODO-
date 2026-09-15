@@ -9,21 +9,26 @@ class TodoList:
         self.tasks = []
         self.load()
 
-    def add(self, desc, prioridade=False):
+    def add(self, desc, prazo=None, prioridade=False):
         """Adiciona uma nova tarefa."""
         nid = max([t.id for t in self.tasks] + [0]) + 1
-        t = TarefaPrioritaria(nid, desc) if prioridade else TarefaSimples(nid, desc)
+        t = TarefaPrioritaria(nid, desc, prazo) if prioridade else TarefaSimples(nid, desc, prazo)
         self.tasks.append(t)
         self.save()
         print(f"\n[+] Tarefa '{desc}' adicionada!")
 
-    def list_all(self):
-        """Exibe todas as tarefas."""
-        print("\n--- Tarefas ---" if self.tasks else "\n[-] Nenhuma tarefa.")
-        for t in self.tasks: print(t.get_detalhes())
+    def list_all(self, filtro="todas"):
+        """Exibe as tarefas aplicando filtros de visualização."""
+        filtradas = self.tasks
+        if filtro == "pendentes":
+            filtradas = [t for t in self.tasks if not t.comp]
+        elif filtro == "concluidas":
+            filtradas = [t for t in self.tasks if t.comp]
+
+        print(f"\n--- Tarefas ({filtro.capitalize()}) ---" if filtradas else f"\n[-] Nenhuma tarefa encontrada.")
+        for t in filtradas: print(t.get_detalhes())
 
     def complete(self, t_id):
-        """Marca uma tarefa como concluída pelo ID."""
         for t in self.tasks:
             if t.id == t_id:
                 t.mark_completed()
@@ -32,18 +37,15 @@ class TodoList:
         print("\n[!] Não encontrada.")
 
     def remove(self, t_id):
-        """Remove a tarefa pelo ID."""
         self.tasks = [t for t in self.tasks if t.id != t_id]
         self.save()
         print(f"\n[-] Tarefa {t_id} removida (se existia).")
 
     def save(self):
-        """Salva a lista no JSON."""
         with open(self.path, 'w', encoding='utf-8') as f:
             json.dump([t.to_dict() for t in self.tasks], f, indent=2)
 
     def load(self):
-        """Carrega a lista do JSON."""
         if os.path.exists(self.path) and os.path.getsize(self.path) > 0:
             with open(self.path, 'r', encoding='utf-8') as f:
                 self.tasks = [Task.from_dict(d) for d in json.load(f)]
